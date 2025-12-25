@@ -158,7 +158,7 @@ const debouncedEmitUpdate = useDebounceFn(() => {
     selectedOptions: selectedOptions.value,
     draggedImages: uploadedImages.value,
   })
-}, 100) // 100ms 防抖
+}, 220) // 220ms 防抖
 
 // 立即发送更新事件（用于选项变化等需要即时响应的场景）
 function emitUpdateImmediate() {
