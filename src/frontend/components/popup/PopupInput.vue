@@ -525,10 +525,30 @@ async function savePromptOrder() {
   }
 }
 
-// 监听用户输入变化
-watch(userInput, () => {
-  emitUpdate()
-})
+// 监听用户输入变化（仅用于非原生输入场景）
+// watch(userInput, () => {
+//   emitUpdate()
+// })
+
+// 处理原生 textarea 输入
+function handleTextInput(event: Event) {
+  const target = event.target as HTMLTextAreaElement
+  userInput.value = target.value
+  debouncedEmitUpdate()
+  // 自动调整高度
+  autoResizeTextarea(target)
+}
+
+// 自动调整 textarea 高度
+function autoResizeTextarea(textarea: HTMLTextAreaElement) {
+  // 重置高度以获取正确的 scrollHeight
+  textarea.style.height = 'auto'
+  // 设置最小和最大高度 (3-15 行，每行约 24px)
+  const minHeight = 72 // 3 行
+  const maxHeight = 360 // 15 行
+  const newHeight = Math.min(Math.max(textarea.scrollHeight, minHeight), maxHeight)
+  textarea.style.height = `${newHeight}px`
+}
 
 // 移除拖拽相关的监听器
 
@@ -788,17 +808,16 @@ defineExpose({
         </div>
       </div>
 
-      <!-- 文本输入框 -->
-      <n-input
+      <!-- 文本输入框 - 使用原生 textarea 提升大文本性能 -->
+      <textarea
         ref="textareaRef"
-        v-model:value="userInput"
-        type="textarea"
-        size="small"
+        v-model="userInput"
+        class="popup-textarea"
         :placeholder="hasOptions ? `您可以在这里添加补充说明... (支持粘贴图片 ${pasteShortcut})` : `请输入您的回复... (支持粘贴图片 ${pasteShortcut})`"
         :disabled="submitting"
-        :autosize="{ minRows: 3, maxRows: 15 }"
         data-guide="popup-input"
         @paste="handleImagePaste"
+        @input="handleTextInput"
       />
     </div>
 
@@ -849,5 +868,37 @@ defineExpose({
 .sortable-drag {
   opacity: 0.8;
   transform: rotate(5deg);
+}
+
+/* 原生 textarea 样式 - 适配主题 */
+.popup-textarea {
+  width: 100%;
+  min-height: 72px; /* 3 行 */
+  max-height: 360px; /* 15 行 */
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-radius: 0.5rem;
+  resize: none;
+  overflow-y: auto;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: var(--color-surface-100, #f0f0f0);
+  color: var(--color-on-surface, #333333);
+  border: 1px solid var(--color-surface-300, #d0d0d0);
+}
+
+.popup-textarea::placeholder {
+  color: var(--color-surface-500, #808080);
+}
+
+.popup-textarea:focus {
+  outline: none;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 1px #14b8a6;
+}
+
+.popup-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>
