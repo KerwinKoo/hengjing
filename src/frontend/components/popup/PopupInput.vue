@@ -232,6 +232,9 @@ function handleImagePaste(event: ClipboardEvent) {
 
   if (hasImage) {
     event.preventDefault()
+  } else {
+    // 粘贴文本后调整高度
+    handlePasteResize()
   }
 }
 
@@ -555,6 +558,8 @@ function handleTextInput(event: Event) {
   
   // 不立即更新 userInput，只触发防抖的 emitUpdate
   debouncedEmitUpdate()
+  // 防抖调整高度
+  debouncedResize()
 }
 
 // 输入法开始组合
@@ -566,28 +571,31 @@ function handleCompositionStart() {
 function handleCompositionEnd(event: Event) {
   isComposing.value = false
   debouncedEmitUpdate()
+  debouncedResize()
 }
 
-// 自动调整 textarea 高度（暂时禁用）
-function autoResizeTextarea(textarea: HTMLTextAreaElement) {
-  // 设置最小和最大高度 (3-15 行，每行约 24px)
-  const minHeight = 72 // 3 行
-  const maxHeight = 360 // 15 行
+// 自动调整 textarea 高度
+const debouncedResize = useDebounceFn(() => {
+  const textarea = textareaRef.value as HTMLTextAreaElement
+  if (!textarea) return
   
-  // 使用 requestAnimationFrame 避免滚动跳动
-  requestAnimationFrame(() => {
-    // 临时设置 overflow 为 hidden 防止滚动
-    const originalOverflow = textarea.style.overflow
-    textarea.style.overflow = 'hidden'
-    
-    // 重置高度以获取正确的 scrollHeight
-    textarea.style.height = `${minHeight}px`
-    const newHeight = Math.min(Math.max(textarea.scrollHeight, minHeight), maxHeight)
-    textarea.style.height = `${newHeight}px`
-    
-    // 恢复 overflow
-    textarea.style.overflow = originalOverflow || 'auto'
-  })
+  // 3行最小，7行最大（每行约21px + padding）
+  const minHeight = 72  // 约3行
+  const maxHeight = 168 // 约7行
+  
+  // 临时设为最小高度来测量实际内容高度
+  const originalHeight = textarea.style.height
+  textarea.style.height = `${minHeight}px`
+  const scrollHeight = textarea.scrollHeight
+  
+  // 计算新高度
+  const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight)
+  textarea.style.height = `${newHeight}px`
+}, 100)
+
+// 处理粘贴后调整高度
+function handlePasteResize() {
+  setTimeout(() => debouncedResize(), 50)
 }
 
 // 移除拖拽相关的监听器
@@ -915,12 +923,13 @@ defineExpose({
 /* 原生 textarea 样式 - 适配主题 */
 .popup-textarea {
   width: 100%;
-  height: 150px; /* 固定高度，约 6-7 行 */
+  min-height: 72px; /* 3 行 */
+  max-height: 168px; /* 7 行 */
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
   line-height: 1.5;
   border-radius: 0.5rem;
-  resize: vertical; /* 允许用户手动调整高度 */
+  resize: none;
   overflow-y: auto;
   transition: border-color 0.2s, box-shadow 0.2s;
   background-color: var(--color-surface-100, #f0f0f0);
