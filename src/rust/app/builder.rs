@@ -116,7 +116,11 @@ pub fn build_tauri_app() -> Builder<tauri::Wry> {
             check_for_updates,
             download_and_install_update,
             get_current_version,
-            restart_app
+            restart_app,
+
+            // CLI 安装命令
+            crate::app::installer::get_cli_install_status,
+            crate::app::installer::install_cli
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();

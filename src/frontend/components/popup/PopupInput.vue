@@ -3,10 +3,10 @@ import type { CustomPrompt, McpRequest } from '../../types/popup'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { useDebounceFn } from '@vueuse/core'
 import { useSortable } from '@vueuse/integrations/useSortable'
 import { useMessage } from 'naive-ui'
-import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
-import { useDebounceFn } from '@vueuse/core'
+import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef } from 'vue'
 import { useKeyboard } from '../../composables/useKeyboard'
 
 interface Props {
@@ -150,7 +150,7 @@ const statusText = computed(() => {
 const debouncedEmitUpdate = useDebounceFn(() => {
   // 从 textarea 直接读取值，避免响应式更新
   const currentInput = getCurrentInputValue()
-  
+
   // 获取条件性prompt的追加内容
   const conditionalContent = generateConditionalContent()
 
@@ -168,7 +168,7 @@ const debouncedEmitUpdate = useDebounceFn(() => {
 function emitUpdateImmediate() {
   // 从 textarea 直接读取值
   const currentInput = getCurrentInputValue()
-  
+
   // 获取条件性prompt的追加内容
   const conditionalContent = generateConditionalContent()
 
@@ -232,7 +232,8 @@ function handleImagePaste(event: ClipboardEvent) {
 
   if (hasImage) {
     event.preventDefault()
-  } else {
+  }
+  else {
     // 粘贴文本后调整高度
     handlePasteResize()
   }
@@ -554,8 +555,9 @@ function getCurrentInputValue(): string {
 // 处理原生 textarea 输入
 function handleTextInput(event: Event) {
   // 输入法组合期间不更新
-  if (isComposing.value) return
-  
+  if (isComposing.value)
+    return
+
   // 不立即更新 userInput，只触发防抖的 emitUpdate
   debouncedEmitUpdate()
   // 防抖调整高度
@@ -577,17 +579,18 @@ function handleCompositionEnd(event: Event) {
 // 自动调整 textarea 高度
 const debouncedResize = useDebounceFn(() => {
   const textarea = textareaRef.value as HTMLTextAreaElement
-  if (!textarea) return
-  
+  if (!textarea)
+    return
+
   // 3行最小，7行最大（每行约21px + padding）
-  const minHeight = 72  // 约3行
+  const minHeight = 72 // 约3行
   const maxHeight = 168 // 约7行
-  
+
   // 临时设为最小高度来测量实际内容高度
   const originalHeight = textarea.style.height
   textarea.style.height = `${minHeight}px`
   const scrollHeight = textarea.scrollHeight
-  
+
   // 计算新高度
   const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight)
   textarea.style.height = `${newHeight}px`
@@ -610,7 +613,7 @@ function fixIMEPosition() {
     try {
       // 获取实际的 textarea 元素（Naive UI 的 n-input）
       const inputElement = (textareaRef.value as any).$el?.querySelector('textarea') || (textareaRef.value as any).inputElRef
-      
+
       if (inputElement && document.activeElement === inputElement) {
         // 先失焦再聚焦，让输入法重新计算位置
         inputElement.blur()
@@ -629,13 +632,13 @@ function fixIMEPosition() {
 async function setupWindowMoveListener() {
   try {
     const webview = getCurrentWebviewWindow()
-    
+
     // 监听窗口移动事件
     unlistenWindowMove = await webview.onMoved(() => {
       // 窗口移动后修复输入法位置
       fixIMEPosition()
     })
-    
+
     console.log('窗口移动监听器已设置')
   }
   catch (error) {
@@ -653,7 +656,7 @@ onMounted(async () => {
     console.log('收到自定义prompt更新事件，重新加载数据')
     loadCustomPrompts()
   })
-  
+
   // 设置窗口移动监听器
   setupWindowMoveListener()
 })
@@ -663,7 +666,7 @@ onUnmounted(() => {
   if (unlistenCustomPromptUpdate) {
     unlistenCustomPromptUpdate()
   }
-  
+
   // 清理窗口移动监听器
   if (unlistenWindowMove) {
     unlistenWindowMove()

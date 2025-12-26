@@ -579,9 +579,9 @@ fn find_executable_in_dir(dir: &PathBuf) -> Result<PathBuf, String> {
         if let Some(file_name) = file.file_name().and_then(|n| n.to_str()) {
             log::info!("📄 检查文件: {} (路径: {})", file_name, file.display());
 
-            // 查找名为 "等一下" 或 "continuum" 的可执行文件
-            if file_name == "等一下" || file_name == "continuum" ||
-               file_name == "等一下.exe" || file_name == "continuum.exe" ||
+            // 查找名为 "等" 或 "continuum" 的可执行文件
+            if file_name == "等" || file_name == "continuum" ||
+               file_name == "等.exe" || file_name == "continuum.exe" ||
                file_name.starts_with("continuum") && !file_name.ends_with(".tar.gz") {
                 log::info!("✅ 找到目标可执行文件: {}", file_name);
                 return Ok(file.clone());

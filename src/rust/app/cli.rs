@@ -73,10 +73,10 @@ fn print_help() {
     println!("恒境 - 智能代码审查工具");
     println!();
     println!("用法:");
-    println!("  等一下                    启动设置界面");
-    println!("  等一下 --mcp-request <文件>  处理 MCP 请求");
-    println!("  等一下 --help             显示此帮助信息");
-    println!("  等一下 --version          显示版本信息");
+    println!("  等                    启动设置界面");
+    println!("  等 --mcp-request <文件>  处理 MCP 请求");
+    println!("  等 --help             显示此帮助信息");
+    println!("  等 --version          显示版本信息");
 }
 
 /// 显示版本信息

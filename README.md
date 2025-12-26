@@ -65,7 +65,7 @@ brew tap imhuso/continuum && brew install continuum
    - 🍎 **macOS (Apple Silicon)**: `continuum-cli-v*-macos-aarch64.tar.gz`
    - 🪟 **Windows**: `continuum-cli-v*-windows-x86_64.zip`
 
-3. 解压后将 `恒境` 和 `等一下` 添加到系统 PATH
+3. 解压后将 `恒境` 和 `等` 添加到系统 PATH
 
 ## ⚡ 快速上手
 
@@ -87,7 +87,7 @@ brew tap imhuso/continuum && brew install continuum
 
 ```bash
 # 运行设置命令
-等一下
+等
 ```
 
 ### 第三步：配置提示词

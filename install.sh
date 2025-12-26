@@ -23,7 +23,7 @@ echo "🔨 构建 CLI 工具..."
 cargo build --release
 
 # 检查构建结果
-if [[ ! -f "target/release/等一下" ]] || [[ ! -f "target/release/恒境" ]]; then
+if [[ ! -f "target/release/等" ]] || [[ ! -f "target/release/恒境" ]]; then
     echo "❌ 构建失败"
     exit 1
 fi
@@ -32,9 +32,9 @@ fi
 BIN_DIR="$HOME/.local/bin"
 mkdir -p "$BIN_DIR"
 
-cp "target/release/等一下" "$BIN_DIR/"
+cp "target/release/等" "$BIN_DIR/"
 cp "target/release/恒境" "$BIN_DIR/"
-chmod +x "$BIN_DIR/等一下" "$BIN_DIR/恒境"
+chmod +x "$BIN_DIR/等" "$BIN_DIR/恒境"
 
 echo "✅ 安装完成！CLI 工具已安装到 $BIN_DIR"
 
@@ -49,7 +49,7 @@ fi
 echo ""
 echo "📋 使用方法："
 echo "  恒境        - 启动 MCP 服务器"
-echo "  等一下      - 启动弹窗界面"
+echo "  等          - 启动弹窗界面"
 echo ""
 echo "📝 MCP 客户端配置："
 echo '{"mcpServers": {"恒境": {"command": "恒境"}}}'

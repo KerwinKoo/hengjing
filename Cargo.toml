@@ -2,13 +2,13 @@
 name = "continuum"
 version = "0.4.0"
 edition = "2021"
-default-run = "等一下"
+default-run = "等"
 
 [lib]
 path = "src/rust/lib.rs"
 
 [[bin]]
-name = "等一下"
+name = "等"
 path = "src/rust/main.rs"
 
 [[bin]]

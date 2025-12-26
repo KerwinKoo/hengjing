@@ -72,7 +72,7 @@ New-Item -ItemType Directory -Path $BinDir -Force | Out-Null
 
 # 复制二进制文件
 $MainExe = "$BinDir\continuum.exe"
-$UiExe = "$BinDir\等一下.exe"
+$UiExe = "$BinDir\等.exe"
 $McpExe = "$BinDir\恒境.exe"
 
 Write-Host "📋 安装二进制文件..." -ForegroundColor Yellow
@@ -126,8 +126,8 @@ Write-Host ""
 Write-Host "📋 使用方法：" -ForegroundColor Cyan
 Write-Host "  🖥️  GUI模式: 从开始菜单打开 '恒境'" -ForegroundColor White
 Write-Host "  💻 命令行模式:" -ForegroundColor White
-Write-Host "    等一下                          - 启动 UI 界面" -ForegroundColor White
-Write-Host "    等一下 --mcp-request file       - MCP 弹窗模式" -ForegroundColor White
+Write-Host "    等                              - 启动 UI 界面" -ForegroundColor White
+Write-Host "    等 --mcp-request file           - MCP 弹窗模式" -ForegroundColor White
 Write-Host "    恒境                            - 启动 MCP 服务器" -ForegroundColor White
 Write-Host ""
 Write-Host "📝 配置 MCP 客户端：" -ForegroundColor Cyan

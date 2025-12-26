@@ -112,12 +112,12 @@ jobs:
 
           # 复制二进制文件
           if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
-            cp "$TARGET_DIR/等一下.exe" cli-package/
+            cp "$TARGET_DIR/等.exe" cli-package/
             cp "$TARGET_DIR/恒境.exe" cli-package/
             cd cli-package
             7z a ../continuum-cli-${TAG_NAME}-${{ matrix.name }}.zip *
           else
-            cp "$TARGET_DIR/等一下" cli-package/
+            cp "$TARGET_DIR/等" cli-package/
             cp "$TARGET_DIR/恒境" cli-package/
             cd cli-package
             tar -czf ../continuum-cli-${TAG_NAME}-${{ matrix.name }}.tar.gz *
