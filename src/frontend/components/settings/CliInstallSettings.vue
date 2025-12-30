@@ -33,6 +33,7 @@ async function loadStatus() {
 
 async function installCli() {
   isInstalling.value = true
+  showManualCommands.value = false
   try {
     const result = await invoke('install_cli')
     message.success(result as string)
@@ -40,12 +41,14 @@ async function installCli() {
   }
   catch (error) {
     const errorMsg = error as string
-    if (errorMsg.includes('Permission denied') || errorMsg.includes('权限')) {
+    // 检测需要权限的各种错误
+    if (errorMsg.includes('Permission denied') || errorMsg.includes('权限') || errorMsg.includes('File exists') || errorMsg.includes('sudo')) {
       message.warning('需要管理员权限，请使用下方的手动安装命令')
       showManualCommands.value = true
     }
     else {
       message.error(`安装失败: ${errorMsg}`)
+      showManualCommands.value = true
     }
   }
   finally {
@@ -101,9 +104,19 @@ onMounted(loadStatus)
         </template>
         一键安装
       </n-button>
-      <n-tag v-else-if="status?.installed" type="success" size="small">
-        已安装
-      </n-tag>
+      <n-button
+        v-else-if="status?.installed"
+        size="small"
+        type="success"
+        ghost
+        :loading="isInstalling"
+        @click="installCli"
+      >
+        <template #icon>
+          <div class="i-carbon-reset w-4 h-4" />
+        </template>
+        重新安装
+      </n-button>
     </div>
 
     <!-- 详细状态 -->
@@ -133,20 +146,19 @@ onMounted(loadStatus)
     </div>
 
     <!-- 手动安装命令 -->
-    <div v-if="status?.manual_commands && (showManualCommands || !status?.installed)" class="flex items-start">
+    <div v-if="status?.manual_commands && showManualCommands" class="flex items-start">
       <div class="w-1.5 h-1.5 bg-warning rounded-full mr-3 flex-shrink-0 mt-2" />
       <div class="flex-1">
         <div class="text-sm font-medium leading-relaxed mb-2">
           手动安装命令
         </div>
         <div class="text-xs opacity-60 mb-2">
-          如果自动安装失败，请在终端中执行以下命令：
+          请在终端中执行以下命令（需要管理员权限）：
         </div>
         <pre class="command-block">{{ status.manual_commands }}</pre>
         <n-button
           size="small"
           type="primary"
-          ghost
           class="mt-3"
           @click="copyCommands"
         >

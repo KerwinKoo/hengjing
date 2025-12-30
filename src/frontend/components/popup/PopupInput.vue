@@ -560,8 +560,11 @@ function handleTextInput(event: Event) {
 
   // 不立即更新 userInput，只触发防抖的 emitUpdate
   debouncedEmitUpdate()
-  // 防抖调整高度
-  debouncedResize()
+}
+
+// 滚动到光标位置 - 简化版
+function scrollToCursor(textarea: HTMLTextAreaElement | null) {
+  // 让浏览器原生处理滚动
 }
 
 // 输入法开始组合
@@ -573,27 +576,16 @@ function handleCompositionStart() {
 function handleCompositionEnd(event: Event) {
   isComposing.value = false
   debouncedEmitUpdate()
-  debouncedResize()
 }
 
-// 自动调整 textarea 高度
+// 自动调整 textarea 高度 - 简化版，避免滚动问题
 const debouncedResize = useDebounceFn(() => {
   const textarea = textareaRef.value as HTMLTextAreaElement
   if (!textarea)
     return
 
-  // 3行最小，7行最大（每行约21px + padding）
-  const minHeight = 72 // 约3行
-  const maxHeight = 168 // 约7行
-
-  // 临时设为最小高度来测量实际内容高度
-  const originalHeight = textarea.style.height
-  textarea.style.height = `${minHeight}px`
-  const scrollHeight = textarea.scrollHeight
-
-  // 计算新高度
-  const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight)
-  textarea.style.height = `${newHeight}px`
+  // 固定高度，依赖原生滚动
+  // 不再动态调整高度，避免滚动位置错乱
 }, 100)
 
 // 处理粘贴后调整高度
@@ -926,18 +918,19 @@ defineExpose({
 /* 原生 textarea 样式 - 适配主题 */
 .popup-textarea {
   width: 100%;
-  min-height: 72px; /* 3 行 */
-  max-height: 168px; /* 7 行 */
+  height: 120px; /* 固定高度，约5行 */
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
   line-height: 1.5;
   border-radius: 0.5rem;
   resize: none;
   overflow-y: auto;
+  overflow-x: hidden;
   transition: border-color 0.2s, box-shadow 0.2s;
   background-color: var(--color-surface-100, #f0f0f0);
   color: var(--color-on-surface, #333333);
   border: 1px solid var(--color-surface-300, #d0d0d0);
+  box-sizing: border-box;
 }
 
 .popup-textarea::placeholder {
