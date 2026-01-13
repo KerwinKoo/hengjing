@@ -192,7 +192,7 @@ jobs:
         run: |
           # 从 GitHub API 获取最新的 release 版本
           echo "Fetching latest release from GitHub API..."
-          LATEST_RELEASE=$(curl -s "https://api.github.com/repos/imhuso/continuum/releases/latest" | jq -r '.tag_name // empty' 2>/dev/null || echo "")
+          LATEST_RELEASE=$(curl -s "https://api.github.com/repos/KerwinKoo/hengjing/releases/latest" | jq -r '.tag_name // empty' 2>/dev/null || echo "")
 
           if [ -z "$LATEST_RELEASE" ] || [ "$LATEST_RELEASE" = "null" ]; then
             echo "GitHub API failed or no previous release found, falling back to git tags"
@@ -220,7 +220,7 @@ jobs:
 
             # 添加 Full Changelog 链接
             echo "" >> changelog.md
-            echo "**Full Changelog**: [$PREVIOUS_TAG...${{ github.ref_name }}](https://github.com/imhuso/continuum/compare/$PREVIOUS_TAG...${{ github.ref_name }})" >> changelog.md
+            echo "**Full Changelog**: [$PREVIOUS_TAG...${{ github.ref_name }}](https://github.com/KerwinKoo/hengjing/compare/$PREVIOUS_TAG...${{ github.ref_name }})" >> changelog.md
           fi
 
           # 生成发布标题
