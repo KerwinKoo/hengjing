@@ -2,7 +2,7 @@
 
 > **告别 AI 提前终止烦恼，过程介入交互方式，助力 AI 更加持久**
 
-本项目 fork 自 [imhuso/cunzhi](https://github.com/imhuso/cunzhi)，主要进行了命名优化和部分功能改进，使其更适合日常使用和分享。
+本项目 fork 自 [imhuso/cunzhi](https://github.com/imhuso/cunzhi)，主要进行了命名优化、显示md格式的数学公式及其他部分功能改进，使其更适合日常使用和分享。
 
 ## 🔄 主要改动
 
@@ -11,7 +11,8 @@
 - **命名优化**：将部分不雅命名替换为更友好的中文名称
   - MCP 工具名：`zhi` → `heng`
   - 设置命令：`等一下` → `等`
-- **CLI 安装**：新增设置界面一键安装功能，方便部署到系统 PATH
+- **CLI 安装**：新增设置界面一键安装功能，方便直接部署到系统 PATH
+- **MD数学公式**：支持md格式的数学公式显示
 - **输入优化**：优化大文本输入时的性能问题
 
 ## 🌟 核心特性
@@ -26,6 +27,10 @@
 ### 🛑 智能拦截弹窗
 ![恒境弹窗演示](./screenshots/popup.png)
 
+### 🧠 数学公式显示
+
+![数学公式显示](./screenshots/math.png)
+
 ### ⚙️ 设置管理界面
 ![恒境设置界面](./screenshots/settings.png)
 
@@ -33,7 +38,7 @@
 
 ### macOS
 
-1. 下载 [Releases](https://github.com/KerwinKoo/cunzhi/releases) 中的 `.dmg` 文件
+1. 下载 [Releases](https://github.com/KerwinKoo/hengjing/releases) 中的 `.dmg` 文件
 2. 将 `恒境.app` 拖入 `/Applications`
 3. 打开应用，在设置 → CLI 安装中点击"一键安装"
 
@@ -73,8 +78,8 @@ sudo ln -sf /Applications/恒境.app/Contents/MacOS/等 /usr/local/bin/等
 ## 🛠️ 本地开发
 
 ```bash
-git clone https://github.com/KerwinKoo/cunzhi.git
-cd cunzhi
+git clone https://github.com/KerwinKoo/hengjing.git
+cd hengjing
 pnpm install
 pnpm tauri:dev
 ```
@@ -86,7 +91,7 @@ pnpm tauri:build
 
 ## 🙏 致谢
 
-- [imhuso/continuum](https://github.com/imhuso/continuum) - 原项目
+- [imhuso/cunzhi](https://github.com/imhuso/cunzhi) - 原项目
 - [acemcp](https://github.com/qy527145/acemcp) - 代码搜索能力
 
 ## 📄 开源协议
