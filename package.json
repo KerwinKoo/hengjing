@@ -1,7 +1,7 @@
 {
   "name": "continuum",
   "type": "module",
-  "version": "6.4.0",
+  "version": "6.4.1",
   "packageManager": "pnpm@10.12.1",
   "scripts": {
     "dev": "vite",
