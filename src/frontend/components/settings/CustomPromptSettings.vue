@@ -12,6 +12,7 @@ const config = ref<CustomPromptConfig>({
   prompts: [],
   enabled: true,
   maxPrompts: 50,
+  default_append_mode: false, // 默认不开启追加模式
 })
 
 // UI状态
@@ -67,6 +68,24 @@ async function toggleEnabled() {
     message.error('更新失败')
     // 回滚状态
     config.value.enabled = !config.value.enabled
+  }
+}
+
+// 切换默认追加模式
+async function toggleDefaultAppendMode() {
+  try {
+    await invoke('set_custom_prompt_default_append_mode', { defaultAppendMode: config.value.default_append_mode })
+
+    // 发送事件通知其他组件更新
+    await emit('custom-prompt-updated')
+
+    message.success(config.value.default_append_mode ? '已启用默认追加模式' : '已禁用默认追加模式')
+  }
+  catch (error) {
+    console.error('更新默认追加模式失败:', error)
+    message.error('更新失败')
+    // 回滚状态
+    config.value.default_append_mode = !config.value.default_append_mode
   }
 }
 
@@ -231,6 +250,22 @@ onMounted(() => {
       <n-switch
         v-model:value="config.enabled"
         @update:value="toggleEnabled"
+      />
+    </div>
+
+    <!-- 默认追加模式开关 -->
+    <div v-if="config.enabled" class="flex items-center justify-between mb-6">
+      <div>
+        <div class="text-sm opacity-60">
+          是否默认追加模式
+        </div>
+        <div class="text-xs opacity-40 mt-1">
+          开启后，点击快捷模板时直接追加内容，无需确认
+        </div>
+      </div>
+      <n-switch
+        v-model:value="config.default_append_mode"
+        @update:value="toggleDefaultAppendMode"
       />
     </div>
 

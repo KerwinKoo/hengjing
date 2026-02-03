@@ -664,6 +664,29 @@ pub async fn set_custom_prompt_enabled(
     Ok(())
 }
 
+/// 设置自定义prompt默认追加模式
+#[tauri::command]
+pub async fn set_custom_prompt_default_append_mode(
+    default_append_mode: bool,
+    state: State<'_, AppState>,
+    app: AppHandle,
+) -> Result<(), String> {
+    {
+        let mut config = state
+            .config
+            .lock()
+            .map_err(|e| format!("获取配置失败: {}", e))?;
+        config.custom_prompt_config.default_append_mode = default_append_mode;
+    }
+
+    // 保存配置到文件
+    save_config(&state, &app)
+        .await
+        .map_err(|e| format!("保存配置失败: {}", e))?;
+
+    Ok(())
+}
+
 /// 更新自定义prompt排序
 #[tauri::command]
 pub async fn update_custom_prompt_order(

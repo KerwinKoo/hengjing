@@ -145,6 +145,8 @@ pub struct CustomPromptConfig {
     pub enabled: bool,
     #[serde(default = "default_custom_prompt_max_prompts")]
     pub max_prompts: u32,
+    #[serde(default = "default_custom_prompt_default_append_mode")]
+    pub default_append_mode: bool,
 }
 
 // 快捷键配置
@@ -268,6 +270,7 @@ pub fn default_custom_prompt_config() -> CustomPromptConfig {
         prompts: default_custom_prompts(),
         enabled: default_custom_prompt_enabled(),
         max_prompts: default_custom_prompt_max_prompts(),
+        default_append_mode: default_custom_prompt_default_append_mode(),
     }
 }
 
@@ -612,6 +615,10 @@ pub fn default_custom_prompt_enabled() -> bool {
 
 pub fn default_custom_prompt_max_prompts() -> u32 {
     50
+}
+
+pub fn default_custom_prompt_default_append_mode() -> bool {
+    false
 }
 
 // 快捷键默认值函数

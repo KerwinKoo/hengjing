@@ -42,6 +42,7 @@ const textareaRef = ref<HTMLTextAreaElement | null>(null)
 // 自定义prompt相关状态
 const customPrompts = ref<CustomPrompt[]>([])
 const customPromptEnabled = ref(true)
+const defaultAppendMode = ref(false) // 默认追加模式
 const showInsertDialog = ref(false)
 const pendingPromptContent = ref('')
 
@@ -315,7 +316,9 @@ async function loadCustomPrompts() {
       // 按sort_order排序
       customPrompts.value = (promptConfig.prompts || []).sort((a: CustomPrompt, b: CustomPrompt) => a.sort_order - b.sort_order)
       customPromptEnabled.value = promptConfig.enabled ?? true
+      defaultAppendMode.value = promptConfig.default_append_mode ?? false // 加载默认追加模式配置
       console.log('PopupInput: 加载到的prompt数量:', customPrompts.value.length)
+      console.log('PopupInput: 默认追加模式:', defaultAppendMode.value)
       console.log('PopupInput: 条件性prompt列表:', customPrompts.value.filter(p => p.type === 'conditional'))
 
       // 同步到拖拽列表（只包含普通prompt）
@@ -347,9 +350,16 @@ function handlePromptClick(prompt: CustomPrompt) {
   }
 
   if (userInput.value.trim()) {
-    // 如果输入框有内容，显示插入选择对话框
-    pendingPromptContent.value = prompt.content
-    showInsertDialog.value = true
+    // 如果输入框有内容，检查是否启用默认追加模式
+    if (defaultAppendMode.value) {
+      // 默认追加模式：直接追加
+      insertPromptContent(prompt.content, 'append')
+    }
+    else {
+      // 非默认追加模式：显示选择对话框
+      pendingPromptContent.value = prompt.content
+      showInsertDialog.value = true
+    }
   }
   else {
     // 如果输入框为空，直接插入

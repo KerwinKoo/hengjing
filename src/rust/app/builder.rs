@@ -87,6 +87,7 @@ pub fn build_tauri_app() -> Builder<tauri::Wry> {
             update_custom_prompt,
             delete_custom_prompt,
             set_custom_prompt_enabled,
+            set_custom_prompt_default_append_mode,
             update_custom_prompt_order,
             update_conditional_prompt_state,
 

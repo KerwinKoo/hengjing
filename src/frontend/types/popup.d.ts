@@ -29,6 +29,7 @@ export interface CustomPromptConfig {
   prompts: CustomPrompt[]
   enabled: boolean
   maxPrompts: number
+  default_append_mode: boolean // 是否默认追加模式
 }
 
 export interface PopupState {
