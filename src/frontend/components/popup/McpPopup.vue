@@ -222,15 +222,22 @@ async function handleSubmit() {
   submitting.value = true
 
   try {
+    // 从 inputRef 获取最新的输入值（避免防抖延迟）
+    let finalUserInput = userInput.value
+    if (inputRef.value) {
+      const latestInput = inputRef.value.getCurrentInputValue?.() || userInput.value
+      finalUserInput = latestInput
+    }
+
     console.log('[DEBUG] handleSubmit 开始:', {
-      userInput: userInput.value,
+      userInput: finalUserInput,
       selectedOptions: selectedOptions.value,
       draggedImages: draggedImages.value.length,
     })
 
     // 使用新的结构化数据格式
     const response = {
-      user_input: userInput.value.trim() || null,
+      user_input: finalUserInput.trim() || null,
       selected_options: selectedOptions.value,
       images: draggedImages.value.map(imageData => ({
         data: imageData.split(',')[1], // 移除 data:image/png;base64, 前缀
@@ -273,7 +280,8 @@ async function handleSubmit() {
 // 处理输入更新
 function handleInputUpdate(data: { userInput: string, selectedOptions: string[], draggedImages: string[] }) {
   console.log('[DEBUG] handleInputUpdate 收到:', data)
-  userInput.value = data.userInput
+  // 不更新 userInput.value，避免覆盖用户正在输入的内容
+  // userInput 由子组件的 textarea 控制，父组件只在提交时读取
   selectedOptions.value = data.selectedOptions
   draggedImages.value = data.draggedImages
 }

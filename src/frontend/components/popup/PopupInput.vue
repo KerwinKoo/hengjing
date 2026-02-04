@@ -349,21 +349,24 @@ function handlePromptClick(prompt: CustomPrompt) {
     return
   }
 
-  if (userInput.value.trim()) {
-    // 如果输入框有内容，检查是否启用默认追加模式
+  // 从 textarea 获取最新值来判断是否有内容
+  const currentValue = getCurrentInputValue()
+  const hasUserInput = currentValue.trim().length > 0
+
+  if (hasUserInput) {
+    // 如果输入框有内容，始终追加（保护用户已输入的内容）
+    insertPromptContent(prompt.content, 'append')
+  }
+  else {
+    // 如果输入框为空，检查默认追加模式
     if (defaultAppendMode.value) {
-      // 默认追加模式：直接追加
+      // 默认追加模式：追加
       insertPromptContent(prompt.content, 'append')
     }
     else {
-      // 非默认追加模式：显示选择对话框
-      pendingPromptContent.value = prompt.content
-      showInsertDialog.value = true
+      // 非默认追加模式：直接替换（因为输入框是空的）
+      insertPromptContent(prompt.content, 'replace')
     }
-  }
-  else {
-    // 如果输入框为空，直接插入
-    insertPromptContent(prompt.content)
   }
 }
 
@@ -383,13 +386,17 @@ function handleQuoteMessage(messageContent: string) {
 
 // 插入prompt内容
 async function insertPromptContent(content: string, mode: 'replace' | 'append' = 'replace') {
-  console.log('[DEBUG] insertPromptContent 开始:', { content, mode, before_userInput: userInput.value })
+  // 先从 textarea 获取最新值（避免防抖延迟）
+  const currentValue = getCurrentInputValue()
+  
+  console.log('[DEBUG] insertPromptContent 开始:', { content, mode, currentValue })
 
   if (mode === 'replace') {
     userInput.value = content
   }
   else {
-    userInput.value = userInput.value.trim() + (userInput.value.trim() ? '\n\n' : '') + content
+    // 使用从 textarea 读取的最新值进行追加
+    userInput.value = currentValue.trim() + (currentValue.trim() ? '\n\n' : '') + content
   }
 
   console.log('[DEBUG] insertPromptContent 设置后:', { userInput: userInput.value })
@@ -733,6 +740,7 @@ defineExpose({
   statusText,
   updateData,
   handleQuoteMessage,
+  getCurrentInputValue, // 暴露获取当前输入值的方法
 })
 </script>
 
