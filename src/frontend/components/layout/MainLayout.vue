@@ -7,6 +7,7 @@ import IntroTab from '../tabs/IntroTab.vue'
 import McpToolsTab from '../tabs/McpToolsTab.vue'
 import PromptsTab from '../tabs/PromptsTab.vue'
 import SettingsTab from '../tabs/SettingsTab.vue'
+import HistoryModal from '../session/HistoryModal.vue'
 
 interface Props {
   currentTheme: string
@@ -40,6 +41,7 @@ function handleConfigReloaded() {
 
 const activeTab = ref('intro')
 const message = useMessage()
+const showHistory = ref(false)
 
 // 图标加载错误处理
 function handleImageError(event: Event) {
@@ -149,6 +151,18 @@ function testPopup() {
                 <div class="i-carbon-test-tool w-4 h-4" />
               </template>
             </n-button>
+            <!-- 历史记录按钮 -->
+            <n-button
+              size="small"
+              type="tertiary"
+              circle
+              title="会话历史"
+              @click="showHistory = true"
+            >
+              <template #icon>
+                <div class="i-carbon-recently-viewed w-4 h-4" />
+              </template>
+            </n-button>
           </div>
 
           <!-- 服务器状态 -->
@@ -202,4 +216,9 @@ function testPopup() {
       </div>
     </div>
   </div>
+
+  <HistoryModal
+    v-model:show="showHistory"
+    :app-config="{ theme: currentTheme, window: { alwaysOnTop, width: windowWidth, height: windowHeight, fixed: fixedWindowSize }, audio: { enabled: audioNotificationEnabled, url: audioUrl }, reply: { enabled: false, prompt: '' } }"
+  />
 </template>

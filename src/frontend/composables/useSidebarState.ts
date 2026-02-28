@@ -18,7 +18,9 @@ function createSidebarState() {
    * 切换侧边栏展开/收起状态
    */
   async function toggleSidebar() {
+    console.log('[useSidebarState] 切换侧边栏，当前状态:', isExpanded.value)
     isExpanded.value = !isExpanded.value
+    console.log('[useSidebarState] 新状态:', isExpanded.value)
     await saveSidebarState()
   }
 

@@ -9,7 +9,7 @@ import UpdateModal from './common/UpdateModal.vue'
 import LayoutWrapper from './layout/LayoutWrapper.vue'
 import McpPopup from './popup/McpPopup.vue'
 import PopupHeader from './popup/PopupHeader.vue'
-import HistorySidebar from './session/HistorySidebar.vue'
+import HistoryModal from './session/HistoryModal.vue'
 
 interface AppConfig {
   theme: string
@@ -60,6 +60,9 @@ const { versionInfo, showUpdateModal } = useVersionCheck()
 
 // 弹窗中的设置显示控制
 const showPopupSettings = ref(false)
+
+// 历史记录弹窗
+const showHistory = ref(false)
 
 // 初始化 Naive UI 消息实例
 const message = useMessage()
@@ -145,6 +148,7 @@ onUnmounted(() => {
           @theme-change="$emit('themeChange', $event)"
           @open-main-layout="togglePopupSettings"
           @toggle-always-on-top="$emit('toggleAlwaysOnTop')"
+          @open-history="showHistory = true"
         />
       </div>
 
@@ -281,7 +285,10 @@ onUnmounted(() => {
       :version-info="versionInfo"
     />
 
-    <!-- 历史侧边栏 -->
-    <HistorySidebar :app-config="props.appConfig" />
+    <!-- 历史记录弹窗 -->
+    <HistoryModal
+      v-model:show="showHistory"
+      :app-config="props.appConfig"
+    />
   </div>
 </template>

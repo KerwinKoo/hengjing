@@ -12,6 +12,7 @@ interface Emits {
   themeChange: [theme: string]
   openMainLayout: []
   toggleAlwaysOnTop: []
+  openHistory: []
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -35,6 +36,10 @@ function handleOpenMainLayout() {
 
 function handleToggleAlwaysOnTop() {
   emit('toggleAlwaysOnTop')
+}
+
+function handleOpenHistory() {
+  emit('openHistory')
 }
 </script>
 
@@ -64,6 +69,18 @@ function handleToggleAlwaysOnTop() {
               :class="props.alwaysOnTop ? 'i-carbon-pin-filled' : 'i-carbon-pin'"
               class="w-4 h-4 text-white"
             />
+          </template>
+        </n-button>
+        <!-- 历史记录按钮 -->
+        <n-button
+          size="small"
+          quaternary
+          circle
+          title="会话历史"
+          @click="handleOpenHistory"
+        >
+          <template #icon>
+            <div class="i-carbon-recently-viewed w-4 h-4 text-white" />
           </template>
         </n-button>
         <n-button

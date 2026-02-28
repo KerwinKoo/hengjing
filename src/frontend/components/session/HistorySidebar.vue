@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { NButton, NPopconfirm, useDialog } from 'naive-ui'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import { useSessionHistory } from '../../composables/useSessionHistory'
 import { useSidebarState } from '../../composables/useSidebarState'
 import SearchBar from './SearchBar.vue'
@@ -61,6 +62,58 @@ const selectedSessionId = ref<string | null>(null)
 const selectedSession = ref<any>(null)
 const selectionMode = ref(false)
 const isResizing = ref(false)
+
+// 窗口尺寸管理
+const originalWindowWidth = ref(0)
+const appWindow = getCurrentWindow()
+
+// 监听侧边栏展开状态，调整窗口大小
+watch(isExpanded, async (expanded) => {
+  try {
+    const currentSize = await appWindow.innerSize()
+    
+    if (expanded) {
+      // 保存原始窗口宽度
+      if (originalWindowWidth.value === 0) {
+        originalWindowWidth.value = currentSize.width
+      }
+      // 扩展窗口宽度
+      await appWindow.setSize({
+        width: originalWindowWidth.value + width.value,
+        height: currentSize.height,
+      })
+    }
+    else {
+      // 恢复原始窗口宽度
+      if (originalWindowWidth.value > 0) {
+        await appWindow.setSize({
+          width: originalWindowWidth.value,
+          height: currentSize.height,
+        })
+      }
+    }
+  }
+  catch (e) {
+    console.error('调整窗口大小失败:', e)
+  }
+})
+
+// 监听侧边栏宽度变化，调整窗口大小
+watch(width, async (newWidth, oldWidth) => {
+  if (isExpanded.value && originalWindowWidth.value > 0) {
+    try {
+      const currentSize = await appWindow.innerSize()
+      const widthDiff = newWidth - oldWidth
+      await appWindow.setSize({
+        width: currentSize.width + widthDiff,
+        height: currentSize.height,
+      })
+    }
+    catch (e) {
+      console.error('调整窗口大小失败:', e)
+    }
+  }
+})
 
 // 过滤后的会话列表
 const filteredSessions = computed(() => {
@@ -182,23 +235,45 @@ function stopResize() {
     isResizing.value = false
     document.removeEventListener('mousemove', handleResize)
     document.removeEventListener('mouseup', stopResize)
+    
+    // 保存新的宽度状态
+    saveSidebarState()
   }
 }
 
 // 生命周期
 onMounted(async () => {
+  console.log('[HistorySidebar] 组件已挂载')
+  
+  // 获取初始窗口宽度
+  try {
+    const currentSize = await appWindow.innerSize()
+    originalWindowWidth.value = currentSize.width
+    console.log('[HistorySidebar] 初始窗口宽度:', originalWindowWidth.value)
+  }
+  catch (e) {
+    console.error('获取窗口大小失败:', e)
+  }
+  
   await loadSidebarState()
+  console.log('[HistorySidebar] 侧边栏状态已加载:', { isExpanded: isExpanded.value, width: width.value })
   await initialize()
+  console.log('[HistorySidebar] 会话历史已初始化，会话数量:', sessions.value.length)
 })
 
 onUnmounted(() => {
+  console.log('[HistorySidebar] 组件即将卸载')
   cleanup()
   stopResize()
 })
 </script>
 
 <template>
-  <div class="history-sidebar" :class="{ expanded: isExpanded }">
+  <div 
+    class="history-sidebar" 
+    :class="{ expanded: isExpanded }"
+    :style="{ '--sidebar-width': `${width}px` }"
+  >
     <!-- 展开/收起按钮 -->
     <div class="toggle-button" @click="toggleSidebar">
       <div
@@ -223,7 +298,7 @@ onUnmounted(() => {
         <!-- 侧边栏头部 -->
         <div class="sidebar-header">
           <div class="header-title">
-            <div class="i-carbon-history w-5 h-5" />
+            <div class="i-carbon-recently-viewed w-5 h-5" />
             <span>会话历史</span>
           </div>
 
@@ -313,11 +388,6 @@ onUnmounted(() => {
   right: 0;
   height: 100vh;
   z-index: 1000;
-  pointer-events: none;
-}
-
-.history-sidebar > * {
-  pointer-events: auto;
 }
 
 .toggle-button {
@@ -337,15 +407,17 @@ onUnmounted(() => {
   cursor: pointer;
   transition: all 0.2s;
   color: rgb(var(--on-surface));
+  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
 }
 
 .toggle-button:hover {
   background: rgb(var(--surface-container-hover));
   width: 36px;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
 }
 
 .history-sidebar.expanded .toggle-button {
-  right: var(--sidebar-width, 300px);
+  right: var(--sidebar-width);
 }
 
 .sidebar-content {
@@ -357,7 +429,6 @@ onUnmounted(() => {
   border-left: 1px solid rgb(var(--surface-border));
   display: flex;
   flex-direction: column;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
 .resize-handle {
