@@ -389,7 +389,7 @@ function handleQuoteMessage(messageContent: string) {
 async function insertPromptContent(content: string, mode: 'replace' | 'append' = 'replace') {
   // 先从 textarea 获取最新值（避免防抖延迟）
   const currentValue = getCurrentInputValue()
-  
+
   console.log('[DEBUG] insertPromptContent 开始:', { content, mode, currentValue })
 
   if (mode === 'replace') {
@@ -622,13 +622,13 @@ function handleCompositionStart() {
 // 输入法结束组合
 function handleCompositionEnd(event: Event) {
   isComposing.value = false
-  
+
   // 立即更新 userInput.value
   const textarea = event.target as HTMLTextAreaElement
   if (textarea) {
     userInput.value = textarea.value
   }
-  
+
   debouncedEmitUpdate()
 }
 

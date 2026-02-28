@@ -106,6 +106,16 @@ pub fn build_tauri_app() -> Builder<tauri::Wry> {
             auto_get_chat_id,
             start_telegram_sync,
 
+            // Session History 命令
+            save_session,
+            load_sessions,
+            get_session,
+            delete_session,
+            batch_delete_sessions,
+            clear_all_sessions,
+            save_sidebar_state,
+            load_sidebar_state,
+
             // 系统命令
             open_external_url,
             exit_app,

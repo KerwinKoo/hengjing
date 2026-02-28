@@ -56,14 +56,15 @@ async function startWindowDrag(event: MouseEvent | TouchEvent) {
   if (target.closest('button') || target.closest('[role="button"]') || target.closest('a')) {
     return
   }
-  
+
   // 阻止默认行为（如文本选择）
   event.preventDefault()
-  
+
   try {
     const appWindow = getCurrentWindow()
     await appWindow.startDragging()
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to start dragging:', error)
   }
 }
@@ -112,7 +113,7 @@ function testPopup() {
 <template>
   <div class="flex flex-col min-h-screen">
     <!-- 顶部拖拽条 -->
-    <div 
+    <div
       class="fixed top-0 left-0 right-0 h-8 z-50"
       style="-webkit-user-select: none; user-select: none; cursor: default;"
       @mousedown="startWindowDrag"

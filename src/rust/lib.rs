@@ -2,6 +2,7 @@ pub mod app;
 pub mod config;
 pub mod constants;
 pub mod mcp;
+pub mod session_history;
 pub mod telegram;
 pub mod ui;
 pub mod utils;

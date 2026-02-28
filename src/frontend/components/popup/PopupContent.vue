@@ -2,11 +2,11 @@
 import type { McpRequest } from '../../types/popup'
 import hljs from 'highlight.js'
 import katex from 'katex'
-import 'katex/dist/katex.min.css'
 import MarkdownIt from 'markdown-it'
 import texmath from 'markdown-it-texmath'
 import { useMessage } from 'naive-ui'
 import { nextTick, onMounted, onUpdated, watch } from 'vue'
+import 'katex/dist/katex.min.css'
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,

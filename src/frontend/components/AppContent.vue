@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import { useMessage } from 'naive-ui'
 import { onMounted, onUnmounted, ref, watch } from 'vue'
-import { getCurrentWindow } from '@tauri-apps/api/window'
 import { setupExitWarningListener } from '../composables/useExitWarning'
 import { useKeyboard } from '../composables/useKeyboard'
 import { useVersionCheck } from '../composables/useVersionCheck'
@@ -9,6 +9,7 @@ import UpdateModal from './common/UpdateModal.vue'
 import LayoutWrapper from './layout/LayoutWrapper.vue'
 import McpPopup from './popup/McpPopup.vue'
 import PopupHeader from './popup/PopupHeader.vue'
+import HistorySidebar from './session/HistorySidebar.vue'
 
 interface AppConfig {
   theme: string
@@ -80,14 +81,15 @@ async function startWindowDrag(event: MouseEvent | TouchEvent) {
   if (target.closest('button') || target.closest('[role="button"]') || target.closest('a')) {
     return
   }
-  
+
   // 阻止默认行为（如文本选择）
   event.preventDefault()
-  
+
   try {
     const appWindow = getCurrentWindow()
     await appWindow.startDragging()
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to start dragging:', error)
   }
 }
@@ -129,8 +131,8 @@ onUnmounted(() => {
       class="flex flex-col w-full h-screen bg-black text-white select-none"
     >
       <!-- 头部 - 固定在顶部，支持拖拽 -->
-      <div 
-        class="sticky top-0 z-50 flex-shrink-0 bg-black-100 border-b-2 border-black-200 pt-8" 
+      <div
+        class="sticky top-0 z-50 flex-shrink-0 bg-black-100 border-b-2 border-black-200 pt-8"
         style="-webkit-user-select: none; user-select: none; cursor: default;"
         @mousedown="startWindowDrag"
         @touchstart="startWindowDrag"
@@ -181,7 +183,7 @@ onUnmounted(() => {
       class="flex flex-col w-full h-screen bg-black text-white"
     >
       <!-- 头部骨架 - 支持拖拽 -->
-      <div 
+      <div
         class="flex-shrink-0 bg-black-100 border-b-2 border-black-200 px-4 py-3 pt-11"
         style="-webkit-user-select: none; user-select: none; cursor: default;"
         @mousedown="startWindowDrag"
@@ -278,5 +280,8 @@ onUnmounted(() => {
       v-model:show="showUpdateModal"
       :version-info="versionInfo"
     />
+
+    <!-- 历史侧边栏 -->
+    <HistorySidebar :app-config="props.appConfig" />
   </div>
 </template>

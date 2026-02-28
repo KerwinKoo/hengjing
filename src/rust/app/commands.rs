@@ -7,6 +7,9 @@ pub use crate::mcp::commands::*;
 pub use crate::telegram::commands::*;
 pub use crate::telegram::handle_telegram_only_mcp_request;
 
+// Session History 命令
+pub use crate::session_history::commands::*;
+
 // UI 命令
 pub use crate::ui::{
     commands::*,

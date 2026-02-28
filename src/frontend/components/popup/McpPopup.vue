@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { McpRequest } from '../../types/popup'
+import type { SessionData } from '../../types/session'
 import { invoke } from '@tauri-apps/api/core'
-import { listen } from '@tauri-apps/api/event'
+import { emit as emitEvent, listen } from '@tauri-apps/api/event'
 import { useMessage } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
@@ -46,6 +47,7 @@ interface Emits {
   stopAudio: []
   testAudioError: [error: any]
   updateWindowSize: [size: { width: number, height: number, fixed: boolean }]
+  sessionCompleted: [sessionData: SessionData]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -206,6 +208,18 @@ onUnmounted(() => {
   }
 })
 
+// 发射会话完成事件（带错误隔离）
+async function emitSessionCompleted(sessionData: SessionData) {
+  try {
+    console.log('[DEBUG] 发射会话完成事件:', sessionData)
+    await emitEvent('sessionCompleted', sessionData)
+  }
+  catch (error) {
+    // 错误隔离：历史记录错误不影响弹窗正常使用
+    console.error('发射会话完成事件失败（不影响弹窗功能）:', error)
+  }
+}
+
 // 重置表单
 function resetForm() {
   selectedOptions.value = []
@@ -263,6 +277,19 @@ async function handleSubmit() {
       await new Promise(resolve => setTimeout(resolve, 1000))
       message.success('模拟响应发送成功')
     }
+
+    // 发射会话完成事件（用于历史记录）
+    await emitSessionCompleted({
+      source: 'send',
+      userInput: response.user_input,
+      aiResponse: props.request?.message || '',
+      selectedOptions: response.selected_options,
+      images: response.images.map(img => ({
+        data: img.data,
+        mediaType: img.media_type,
+        filename: img.filename,
+      })),
+    })
 
     // 通过事件触发统一的响应处理（send_mcp_response + exit_app）
     // 注意：不再在这里直接调用 invoke，避免重复发送
@@ -322,6 +349,15 @@ async function handleContinue() {
       message.success('继续请求发送成功')
     }
 
+    // 发射会话完成事件（用于历史记录）
+    await emitSessionCompleted({
+      source: 'continue',
+      userInput: continuePrompt.value,
+      aiResponse: props.request?.message || '',
+      selectedOptions: [],
+      images: [],
+    })
+
     // 通过事件触发统一的响应处理（send_mcp_response + exit_app）
     // 注意：不再在这里直接调用 invoke，避免重复发送
     emit('response', response)
@@ -380,6 +416,15 @@ Here is my original instruction:
       await new Promise(resolve => setTimeout(resolve, 1000))
       message.success('增强请求发送成功')
     }
+
+    // 发射会话完成事件（用于历史记录）
+    await emitSessionCompleted({
+      source: 'enhance',
+      userInput: enhancePrompt,
+      aiResponse: props.request?.message || '',
+      selectedOptions: [],
+      images: [],
+    })
 
     // 通过事件触发统一的响应处理（send_mcp_response + exit_app）
     // 注意：不再在这里直接调用 invoke，避免重复发送

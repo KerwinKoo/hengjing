@@ -50,6 +50,7 @@ reqwest = { version = "0.11", features = [
 ] }
 base64 = "0.21"
 rust-embed = "8.0"
+image = "0.24"
 teloxide = { version = "0.15.0", features = [ "macros" ] }
 regex = "1.0"
 log = "0.4.27"
@@ -60,6 +61,10 @@ hex = "0.4"
 ignore = "0.4"
 encoding_rs = "0.8"
 globset = "0.4"
+
+[dev-dependencies]
+proptest = "1.4"
+tempfile = "3.8"
 
 [build-dependencies]
 tauri-build = { version = "2.0", features = [] }
