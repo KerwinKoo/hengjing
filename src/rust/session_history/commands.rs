@@ -1,5 +1,5 @@
 use crate::config::AppState;
-use crate::session_history::{SessionData, SessionRecord, SidebarState, SessionStorageService};
+use crate::session_history::{SessionData, SessionRecord, SessionUpdateData, SidebarState, SessionStorageService};
 use tauri::State;
 
 /// 保存会话记录
@@ -8,23 +8,51 @@ pub async fn save_session(
     session: SessionData,
     _state: State<'_, AppState>,
 ) -> Result<SessionRecord, String> {
+    log::info!("[Command] save_session 被调用");
+
     // 创建存储服务实例
     let storage = SessionStorageService::new()
-        .map_err(|e| format!("Failed to create storage service: {}", e))?;
-    
+        .map_err(|e| {
+            log::error!("[Command] 创建存储服务失败: {:?}", e);
+            format!("Failed to create storage service: {}", e)
+        })?;
+
+    log::info!("[Command] 存储服务创建成功，开始保存会话");
+
     // 保存会话
     storage.save_session(session).await
         .map_err(|e| {
-            log::error!("Failed to save session: {:?}", e);
-            
+            log::error!("[Command] 保存会话失败: {:?}", e);
+
             // 返回用户友好的错误消息
             if e.to_string().contains("No space left") {
                 "存储空间不足".to_string()
             } else if e.to_string().contains("Permission denied") {
                 "文件权限不足".to_string()
             } else {
-                "保存会话失败".to_string()
+                format!("保存会话失败: {}", e)
             }
+        })
+        .map(|record| {
+            log::info!("[Command] 会话保存成功: {}", record.id);
+            record
+        })
+}
+
+/// 更新会话记录
+#[tauri::command]
+pub async fn update_session(
+    id: String,
+    update: SessionUpdateData,
+    _state: State<'_, AppState>,
+) -> Result<SessionRecord, String> {
+    let storage = SessionStorageService::new()
+        .map_err(|e| format!("Failed to create storage service: {}", e))?;
+
+    storage.update_session(&id, update).await
+        .map_err(|e| {
+            log::error!("Failed to update session {}: {:?}", id, e);
+            format!("更新会话失败: {}", id)
         })
 }
 

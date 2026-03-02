@@ -2,12 +2,27 @@ import process from 'node:process'
 import vue from '@vitejs/plugin-vue'
 import UnoCSS from 'unocss/vite'
 import { defineConfig } from 'vite'
+import pkg from './package.json'
+
+// 生成构建时间戳
+const buildTime = new Date().toLocaleString('zh-CN', {
+  timeZone: 'Asia/Shanghai',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+})
 
 export default defineConfig({
   plugins: [
     vue(),
     UnoCSS(),
   ],
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+    __BUILD_TIME__: JSON.stringify(buildTime),
+  },
   clearScreen: false,
   // Tauri应用需要使用相对路径
   base: './',

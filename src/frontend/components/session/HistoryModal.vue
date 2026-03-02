@@ -51,10 +51,13 @@ const selectionMode = ref(false)
 
 const filteredSessions = computed(() => searchSessions(searchQuery.value))
 
-// 打开时初始化数据
+// 打开时重新加载数据（确保从数据库获取最新数据）
 watch(show, async (val) => {
   if (val) {
+    console.log('[HistoryModal] 打开历史模态框，当前列表长度:', sessions.value.length)
+    // 强制从数据库重新加载，确保获取最新数据
     await initialize()
+    console.log('[HistoryModal] 初始化完成，当前列表长度:', sessions.value.length)
     selectedSessionId.value = null
     selectedSession.value = null
     selectionMode.value = false

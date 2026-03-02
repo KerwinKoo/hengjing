@@ -1,5 +1,17 @@
 <script setup lang="ts">
+import { useBuildInfo } from '../../composables/useBuildInfo'
 import ThemeIcon from '../common/ThemeIcon.vue'
+
+const props = withDefaults(defineProps<Props>(), {
+  currentTheme: 'dark',
+  loading: false,
+  showMainLayout: false,
+  alwaysOnTop: false,
+})
+
+const emit = defineEmits<Emits>()
+
+const { buildInfo } = useBuildInfo()
 
 interface Props {
   currentTheme?: string
@@ -14,15 +26,6 @@ interface Emits {
   toggleAlwaysOnTop: []
   openHistory: []
 }
-
-const props = withDefaults(defineProps<Props>(), {
-  currentTheme: 'dark',
-  loading: false,
-  showMainLayout: false,
-  alwaysOnTop: false,
-})
-
-const emit = defineEmits<Emits>()
 
 function handleThemeChange() {
   // 切换到下一个主题
@@ -51,6 +54,7 @@ function handleOpenHistory() {
         <div class="w-3 h-3 rounded-full bg-primary-500" />
         <h1 class="text-base font-medium text-white">
           恒境 - AI 交互确认助手，助力AI持续交互
+          <span class="text-xs opacity-30 ml-2">{{ buildInfo }}</span>
         </h1>
       </div>
 

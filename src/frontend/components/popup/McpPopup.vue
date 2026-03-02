@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import type { McpRequest } from '../../types/popup'
-import type { SessionData } from '../../types/session'
+import type { SessionData, SessionUpdateData } from '../../types/session'
 import { invoke } from '@tauri-apps/api/core'
-import { emit as emitEvent, listen } from '@tauri-apps/api/event'
+import { listen } from '@tauri-apps/api/event'
 import { useMessage } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useSessionHistory } from '../../composables/useSessionHistory'
 
 import PopupActions from './PopupActions.vue'
 import PopupContent from './PopupContent.vue'
@@ -47,7 +48,6 @@ interface Emits {
   stopAudio: []
   testAudioError: [error: any]
   updateWindowSize: [size: { width: number, height: number, fixed: boolean }]
-  sessionCompleted: [sessionData: SessionData]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -60,6 +60,9 @@ const emit = defineEmits<Emits>()
 // 使用消息提示
 const message = useMessage()
 
+// 使用会话历史管理
+const { saveSession, updateSession } = useSessionHistory()
+
 // 响应式状态
 const loading = ref(false)
 const submitting = ref(false)
@@ -67,6 +70,7 @@ const selectedOptions = ref<string[]>([])
 const userInput = ref('')
 const draggedImages = ref<string[]>([])
 const inputRef = ref()
+const currentSessionId = ref<string | null>(null)
 
 // 继续回复配置
 const continueReplyEnabled = ref(true)
@@ -114,12 +118,32 @@ watch(() => props.appConfig.reply, (newReplyConfig) => {
 let telegramUnlisten: (() => void) | null = null
 
 // 监听请求变化
-watch(() => props.request, (newRequest) => {
+watch(() => props.request, async (newRequest) => {
   if (newRequest) {
     resetForm()
     loading.value = true
     // 每次显示弹窗时重新加载配置
     loadReplyConfig()
+
+    // 创建会话记录（只保存 AI 消息，用户响应稍后更新）
+    try {
+      console.log('[McpPopup] 开始创建会话记录...')
+      const sessionData: SessionData = {
+        source: 'send',
+        userInput: null,
+        aiResponse: newRequest.message || '',
+        selectedOptions: [],
+        images: [],
+      }
+      const record = await saveSession(sessionData)
+      currentSessionId.value = record.id
+      console.log('[McpPopup] 会话已创建:', record.id)
+    }
+    catch (error) {
+      console.error('[McpPopup] 创建会话失败:', error)
+      currentSessionId.value = null
+    }
+
     setTimeout(() => {
       loading.value = false
     }, 300)
@@ -208,15 +232,21 @@ onUnmounted(() => {
   }
 })
 
-// 发射会话完成事件（带错误隔离）
-async function emitSessionCompleted(sessionData: SessionData) {
+// 更新会话记录（添加用户响应）
+async function updateSessionRecord(updateData: SessionUpdateData) {
+  if (!currentSessionId.value) {
+    console.warn('[SessionHistory] 没有当前会话ID，跳过更新')
+    return
+  }
+
   try {
-    console.log('[DEBUG] 发射会话完成事件:', sessionData)
-    await emitEvent('sessionCompleted', sessionData)
+    console.log('[SessionHistory] 更新会话:', currentSessionId.value, updateData)
+    await updateSession(currentSessionId.value, updateData)
+    console.log('[SessionHistory] 会话更新成功')
   }
   catch (error) {
     // 错误隔离：历史记录错误不影响弹窗正常使用
-    console.error('发射会话完成事件失败（不影响弹窗功能）:', error)
+    console.error('[SessionHistory] 更新会话失败（不影响弹窗功能）:', error)
   }
 }
 
@@ -226,6 +256,7 @@ function resetForm() {
   userInput.value = ''
   draggedImages.value = []
   submitting.value = false
+  currentSessionId.value = null
 }
 
 // 处理提交
@@ -278,11 +309,10 @@ async function handleSubmit() {
       message.success('模拟响应发送成功')
     }
 
-    // 发射会话完成事件（用于历史记录）
-    await emitSessionCompleted({
+    // 更新会话记录（添加用户响应）
+    await updateSessionRecord({
       source: 'send',
       userInput: response.user_input,
-      aiResponse: props.request?.message || '',
       selectedOptions: response.selected_options,
       images: response.images.map(img => ({
         data: img.data,
@@ -349,11 +379,10 @@ async function handleContinue() {
       message.success('继续请求发送成功')
     }
 
-    // 发射会话完成事件（用于历史记录）
-    await emitSessionCompleted({
+    // 更新会话记录（添加用户响应）
+    await updateSessionRecord({
       source: 'continue',
       userInput: continuePrompt.value,
-      aiResponse: props.request?.message || '',
       selectedOptions: [],
       images: [],
     })
@@ -417,11 +446,10 @@ Here is my original instruction:
       message.success('增强请求发送成功')
     }
 
-    // 发射会话完成事件（用于历史记录）
-    await emitSessionCompleted({
+    // 更新会话记录（添加用户响应）
+    await updateSessionRecord({
       source: 'enhance',
       userInput: enhancePrompt,
-      aiResponse: props.request?.message || '',
       selectedOptions: [],
       images: [],
     })

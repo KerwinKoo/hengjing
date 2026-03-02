@@ -108,6 +108,7 @@ pub fn build_tauri_app() -> Builder<tauri::Wry> {
 
             // Session History 命令
             save_session,
+            update_session,
             load_sessions,
             get_session,
             delete_session,

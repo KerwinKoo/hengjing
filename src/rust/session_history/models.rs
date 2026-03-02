@@ -60,3 +60,12 @@ pub struct SidebarState {
     pub is_expanded: bool,
     pub width: f64,
 }
+
+/// 会话更新数据（用于更新已存在的会话）
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionUpdateData {
+    pub source: SessionSource,
+    pub user_input: Option<String>,
+    pub selected_options: Vec<String>,
+    pub images: Vec<ImageAttachment>,
+}

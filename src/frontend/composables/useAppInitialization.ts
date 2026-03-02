@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { useFontManager } from './useFontManager'
 import { initMcpTools } from './useMcpTools'
+import { useSessionHistory } from './useSessionHistory'
 import { useSettings } from './useSettings'
 import { useVersionCheck } from './useVersionCheck'
 
@@ -13,6 +14,7 @@ export function useAppInitialization(mcpHandler: ReturnType<typeof import('./use
   const settings = useSettings()
   const { autoCheckUpdate } = useVersionCheck()
   const { checkMcpMode, setupMcpEventListener } = mcpHandler
+  const sessionHistory = useSessionHistory()
 
   /**
    * 检查是否为首次启动
@@ -72,6 +74,11 @@ export function useAppInitialization(mcpHandler: ReturnType<typeof import('./use
         await initMcpTools()
         await setupMcpEventListener()
       }
+
+      // 初始化会话历史（加载历史会话）
+      console.log('[AppInit] 开始初始化会话历史...')
+      await sessionHistory.initialize()
+      console.log('[AppInit] 会话历史初始化完成')
 
       // 如果是首次启动，标记已初始化（主题已在上面加载过）
       if (isFirstRun) {

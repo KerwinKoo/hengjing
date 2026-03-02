@@ -81,6 +81,20 @@ export interface SidebarState {
 }
 
 /**
+ * 会话更新数据（用于更新已存在的会话）
+ */
+export interface SessionUpdateData {
+  /** 会话来源类型 */
+  source: SessionSource
+  /** 用户输入的文本内容（可选） */
+  userInput?: string | null
+  /** 用户选择的预定义选项 */
+  selectedOptions: string[]
+  /** 用户上传的截图列表 */
+  images: ImageAttachment[]
+}
+
+/**
  * 会话预览（用于列表显示）
  *
  * 用于在侧边栏列表中显示会话的简要信息

@@ -3,11 +3,12 @@ import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { useMessage } from 'naive-ui'
 import { ref } from 'vue'
+import { useBuildInfo } from '../../composables/useBuildInfo'
+import HistoryModal from '../session/HistoryModal.vue'
 import IntroTab from '../tabs/IntroTab.vue'
 import McpToolsTab from '../tabs/McpToolsTab.vue'
 import PromptsTab from '../tabs/PromptsTab.vue'
 import SettingsTab from '../tabs/SettingsTab.vue'
-import HistoryModal from '../session/HistoryModal.vue'
 
 interface Props {
   currentTheme: string
@@ -42,6 +43,7 @@ function handleConfigReloaded() {
 const activeTab = ref('intro')
 const message = useMessage()
 const showHistory = ref(false)
+const { buildInfo } = useBuildInfo()
 
 // 图标加载错误处理
 function handleImageError(event: Event) {
@@ -127,7 +129,7 @@ function testPopup() {
         <!-- 标题区域 -->
         <div class="text-center mb-8">
           <!-- 主标题 -->
-          <div class="flex items-center justify-center gap-3 mb-3" data-guide="app-logo">
+          <div class="flex items-center justify-center gap-3 mb-1" data-guide="app-logo">
             <img
               src="/icons/icon-128.png"
               alt="恒境 Logo"
@@ -163,6 +165,11 @@ function testPopup() {
                 <div class="i-carbon-recently-viewed w-4 h-4" />
               </template>
             </n-button>
+          </div>
+
+          <!-- 版本信息 -->
+          <div class="text-xs opacity-30 text-white mb-3">
+            {{ buildInfo }}
           </div>
 
           <!-- 服务器状态 -->

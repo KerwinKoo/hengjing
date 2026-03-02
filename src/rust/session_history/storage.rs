@@ -1,4 +1,4 @@
-use super::models::{ImageAttachment, SessionData, SessionMetadata, SessionRecord, SidebarState};
+use super::models::{ImageAttachment, SessionData, SessionMetadata, SessionRecord, SessionUpdateData, SidebarState};
 use anyhow::{Context, Result};
 use base64::{Engine as _, engine::general_purpose};
 use chrono::Utc;
@@ -35,9 +35,9 @@ impl SessionStorageService {
 
     /// 获取存储目录路径
     fn get_storage_dir() -> Result<PathBuf> {
-        let config_dir = dirs::config_dir()
-            .context("Unable to get config directory")?;
-        Ok(config_dir.join("continuum").join("sessions"))
+        let home_dir = dirs::home_dir()
+            .context("Unable to get home directory")?;
+        Ok(home_dir.join(".heng").join("history"))
     }
 
     /// 压缩图片数据到指定大小限制
@@ -122,6 +122,8 @@ impl SessionStorageService {
     pub async fn save_session(&self, session: SessionData) -> Result<SessionRecord> {
         let id = Uuid::new_v4().to_string();
         let timestamp = Utc::now();
+
+        log::info!("[Storage] 开始保存会话 {}, 存储目录: {:?}", id, self.storage_dir);
         
         // 限制截图数量（需求 10.4）
         let images_to_save = if session.images.len() > MAX_IMAGES {
@@ -187,10 +189,13 @@ impl SessionStorageService {
         
         // 保存元数据到JSON文件
         let metadata_path = self.storage_dir.join(format!("{}.json", id));
+        log::info!("[Storage] 准备写入元数据文件: {:?}", metadata_path);
         let metadata_json = serde_json::to_string_pretty(&metadata)
             .context("Failed to serialize metadata")?;
+        log::info!("[Storage] 元数据序列化成功，大小: {} bytes", metadata_json.len());
         fs::write(&metadata_path, metadata_json)
             .context("Failed to write metadata file")?;
+        log::info!("[Storage] 元数据文件写入成功: {:?}", metadata_path);
         
         // 保存截图（如果有）
         if !processed_images.is_empty() {
@@ -343,6 +348,88 @@ impl SessionStorageService {
             selected_options: metadata.selected_options,
             images,
         }))
+    }
+
+    /// 更新会话记录（添加用户响应和图片）
+    pub async fn update_session(&self, id: &str, update: SessionUpdateData) -> Result<SessionRecord> {
+        let metadata_path = self.storage_dir.join(format!("{}.json", id));
+
+        if !metadata_path.exists() {
+            anyhow::bail!("Session {} not found", id);
+        }
+
+        // 加载现有元数据
+        let mut metadata = self.load_session_metadata(&metadata_path)?;
+
+        // 更新字段
+        metadata.source = update.source;
+        metadata.user_input = update.user_input.clone();
+        metadata.selected_options = update.selected_options.clone();
+
+        // 处理图片
+        let images_to_save = if update.images.len() > MAX_IMAGES {
+            &update.images[..MAX_IMAGES]
+        } else {
+            &update.images[..]
+        };
+
+        let mut processed_images = Vec::new();
+        let mut image_media_types = Vec::new();
+
+        // 删除旧的图片目录
+        let images_dir = self.storage_dir.join("images").join(id);
+        if images_dir.exists() {
+            let _ = fs::remove_dir_all(&images_dir);
+        }
+
+        // 保存新图片
+        if !images_to_save.is_empty() {
+            fs::create_dir_all(&images_dir)
+                .context("Failed to create session images directory")?;
+
+            for (index, image) in images_to_save.iter().enumerate() {
+                let image_data = general_purpose::STANDARD.decode(&image.data)
+                    .with_context(|| format!("Failed to decode base64 image data at index {}", index))?;
+
+                let (final_data, was_compressed) = self.compress_image_if_needed(&image_data)
+                    .with_context(|| format!("Failed to compress image at index {}", index))?;
+
+                let final_base64 = general_purpose::STANDARD.encode(&final_data);
+                let media_type = if was_compressed { "image/jpeg".to_string() } else { image.media_type.clone() };
+
+                processed_images.push(ImageAttachment {
+                    data: final_base64,
+                    media_type: media_type.clone(),
+                    filename: image.filename.clone(),
+                });
+                image_media_types.push(media_type.clone());
+
+                let extension = if media_type.contains("jpeg") || media_type.contains("jpg") { "jpg" } else { "png" };
+                let image_path = images_dir.join(format!("{}.{}", index, extension));
+                fs::write(image_path, final_data).context("Failed to write image file")?;
+            }
+        }
+
+        metadata.image_count = processed_images.len();
+        metadata.image_media_types = image_media_types;
+
+        // 保存更新后的元数据
+        let metadata_json = serde_json::to_string_pretty(&metadata)
+            .context("Failed to serialize metadata")?;
+        fs::write(&metadata_path, metadata_json)
+            .context("Failed to write metadata file")?;
+
+        log::info!("Session {} updated with {} images", id, processed_images.len());
+
+        Ok(SessionRecord {
+            id: metadata.id,
+            timestamp: metadata.timestamp,
+            source: metadata.source,
+            user_input: update.user_input,
+            ai_response: metadata.ai_response,
+            selected_options: update.selected_options,
+            images: processed_images,
+        })
     }
 
     /// 删除单个会话
