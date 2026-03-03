@@ -11,7 +11,7 @@
     "tauri": "cargo tauri",
     "tauri:dev": "cargo tauri dev",
     "tauri:build": "cargo tauri build",
-    "test": "vitest --run",
+    "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "cd src/frontend/test && vite",
     "test:ui:build": "cd src/frontend/test && vite build"

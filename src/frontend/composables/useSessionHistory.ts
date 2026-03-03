@@ -9,6 +9,15 @@ function createSessionHistory() {
   // 状态
   const sessions = ref<SessionRecord[]>([])
   const loading = ref(false)
+  const mockMode = ref(false) // 测试模式标志
+
+  /**
+   * 设置测试模式
+   */
+  function setMockMode(enabled: boolean) {
+    mockMode.value = enabled
+    console.log('[SessionHistory] Mock mode:', enabled ? 'enabled' : 'disabled')
+  }
 
   /**
    * 加载所有会话记录（不包含截图数据）
@@ -136,6 +145,27 @@ function createSessionHistory() {
     try {
       loading.value = true
       console.log('[SessionHistory] 开始保存会话...', sessionData)
+
+      // 检查是否处于测试模式
+      if (mockMode.value) {
+        console.log('[SessionHistory] 测试模式：创建模拟会话记录')
+        // 创建模拟的 SessionRecord 对象
+        const mockRecord: SessionRecord = {
+          id: `mock-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          timestamp: Date.now(),
+          source: sessionData.source || 'send',
+          userInput: sessionData.userInput || null,
+          aiResponse: sessionData.aiResponse || '',
+          selectedOptions: sessionData.selectedOptions || [],
+          images: sessionData.images || [],
+        }
+
+        // 直接添加到前端列表
+        sessions.value.unshift(mockRecord)
+        console.log('[SessionHistory] 模拟会话已创建并添加到列表:', mockRecord.id, '当前列表长度:', sessions.value.length)
+        return { id: mockRecord.id }
+      }
+
       console.log('[SessionHistory] 准备调用 invoke("save_session")...')
 
       // 添加超时检测
@@ -203,6 +233,8 @@ function createSessionHistory() {
   return {
     sessions,
     loading,
+    mockMode,
+    setMockMode,
     saveSession,
     updateSession,
     getSession,

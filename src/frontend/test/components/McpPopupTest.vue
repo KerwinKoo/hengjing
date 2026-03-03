@@ -1,6 +1,19 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import McpPopup from '../../components/popup/McpPopup.vue'
+import { useSessionHistory } from '../../composables/useSessionHistory'
+
+// 初始化会话历史管理器
+const sessionHistory = useSessionHistory()
+
+// 组件挂载时初始化测试环境
+onMounted(async () => {
+  // 设置为测试模式
+  sessionHistory.setMockMode(true)
+  // 初始化会话历史
+  await sessionHistory.initialize()
+  console.log('[McpPopupTest] 测试环境已初始化，mockMode已启用')
+})
 
 // Props
 const props = defineProps<{

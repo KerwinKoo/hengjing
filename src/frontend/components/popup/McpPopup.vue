@@ -61,7 +61,8 @@ const emit = defineEmits<Emits>()
 const message = useMessage()
 
 // 使用会话历史管理
-const { saveSession, updateSession } = useSessionHistory()
+const sessionHistory = useSessionHistory()
+const { saveSession, updateSession } = sessionHistory
 
 // 响应式状态
 const loading = ref(false)
@@ -220,7 +221,9 @@ function handleTextUpdate(text: string) {
 }
 
 // 组件挂载时设置监听器和加载配置
-onMounted(() => {
+onMounted(async () => {
+  // 初始化会话历史
+  await sessionHistory.initialize()
   loadReplyConfig()
   setupTelegramListener()
 })
