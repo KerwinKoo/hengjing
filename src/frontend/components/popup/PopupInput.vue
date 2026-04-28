@@ -8,6 +8,7 @@ import { useSortable } from '@vueuse/integrations/useSortable'
 import { useMessage } from 'naive-ui'
 import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef } from 'vue'
 import { useKeyboard } from '../../composables/useKeyboard'
+import { hasPopupInputContent } from './popupSubmission'
 
 interface Props {
   request: McpRequest | null
@@ -121,27 +122,15 @@ const message = useMessage()
 
 // 计算属性
 const hasOptions = computed(() => (props.request?.predefined_options?.length ?? 0) > 0)
-const canSubmit = computed(() => {
-  const hasOptionsSelected = selectedOptions.value.length > 0
-  // 直接从 textarea 读取值判断
-  const hasInputText = getCurrentInputValue().trim().length > 0
-  const hasImages = uploadedImages.value.length > 0
-
-  if (hasOptions.value) {
-    return hasOptionsSelected || hasInputText || hasImages
-  }
-  return hasInputText || hasImages
-})
+const canSubmit = computed(() => hasPopupInputContent({
+  userInput: getCurrentInputValue(),
+  selectedOptions: selectedOptions.value,
+  draggedImages: uploadedImages.value,
+}))
 
 // 工具栏状态文本
 const statusText = computed(() => {
-  // 检查是否有任何输入内容
-  const hasInput = selectedOptions.value.length > 0
-    || uploadedImages.value.length > 0
-    || getCurrentInputValue().trim().length > 0
-
-  // 如果有任何输入内容，返回空字符串让 PopupActions 显示快捷键
-  if (hasInput) {
+  if (canSubmit.value) {
     return ''
   }
 
@@ -609,11 +598,6 @@ function handleTextInput(event: Event) {
   debouncedEmitUpdate()
 }
 
-// 滚动到光标位置 - 简化版
-function scrollToCursor(textarea: HTMLTextAreaElement | null) {
-  // 让浏览器原生处理滚动
-}
-
 // 输入法开始组合
 function handleCompositionStart() {
   isComposing.value = true
@@ -634,12 +618,10 @@ function handleCompositionEnd(event: Event) {
 
 // 自动调整 textarea 高度 - 简化版，避免滚动问题
 const debouncedResize = useDebounceFn(() => {
-  const textarea = textareaRef.value as HTMLTextAreaElement
-  if (!textarea)
-    return
-
-  // 固定高度，依赖原生滚动
-  // 不再动态调整高度，避免滚动位置错乱
+  const textarea = textareaRef.value as HTMLTextAreaElement | null
+  if (textarea) {
+    textarea.scrollTop = textarea.scrollHeight
+  }
 }, 100)
 
 // 处理粘贴后调整高度

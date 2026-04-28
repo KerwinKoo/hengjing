@@ -10,6 +10,7 @@ import { useSessionHistory } from '../../composables/useSessionHistory'
 import PopupActions from './PopupActions.vue'
 import PopupContent from './PopupContent.vue'
 import PopupInput from './PopupInput.vue'
+import { buildPopupSubmitResponse, canSendPopupResponse, hasPopupInputContent } from './popupSubmission'
 
 interface AppConfig {
   theme: string
@@ -80,15 +81,19 @@ const continuePrompt = ref('请按照最佳实践继续')
 // 计算属性
 const isVisible = computed(() => !!props.request)
 const hasOptions = computed(() => (props.request?.predefined_options?.length ?? 0) > 0)
-const canSubmit = computed(() => {
-  if (hasOptions.value) {
-    return selectedOptions.value.length > 0 || userInput.value.trim().length > 0 || draggedImages.value.length > 0
-  }
-  return userInput.value.trim().length > 0 || draggedImages.value.length > 0
-})
+const hasInputContent = computed(() => hasPopupInputContent({
+  userInput: userInput.value,
+  selectedOptions: selectedOptions.value,
+  draggedImages: draggedImages.value,
+}))
+const canSubmit = computed(() => canSendPopupResponse(props.request))
+const canEnhance = computed(() => hasInputContent.value)
 
 // 获取输入组件的状态文本
 const inputStatusText = computed(() => {
+  if (!hasInputContent.value && canSubmit.value) {
+    return hasOptions.value ? '可直接发送，或选择选项 / 输入补充说明' : '可直接发送，或补充说明'
+  }
   return inputRef.value?.statusText || '等待输入...'
 })
 
@@ -264,7 +269,7 @@ function resetForm() {
 
 // 处理提交
 async function handleSubmit() {
-  if (!canSubmit.value || submitting.value)
+  if (!props.request || submitting.value)
     return
 
   submitting.value = true
@@ -283,26 +288,11 @@ async function handleSubmit() {
       draggedImages: draggedImages.value.length,
     })
 
-    // 使用新的结构化数据格式
-    const response = {
-      user_input: finalUserInput.trim() || null,
-      selected_options: selectedOptions.value,
-      images: draggedImages.value.map(imageData => ({
-        data: imageData.split(',')[1], // 移除 data:image/png;base64, 前缀
-        media_type: 'image/png',
-        filename: null,
-      })),
-      metadata: {
-        timestamp: new Date().toISOString(),
-        request_id: props.request?.id || null,
-        source: 'popup',
-      },
-    }
-
-    // 如果没有任何有效内容，设置默认用户输入
-    if (!response.user_input && response.selected_options.length === 0 && response.images.length === 0) {
-      response.user_input = '用户确认继续'
-    }
+    const response = buildPopupSubmitResponse({
+      userInput: finalUserInput,
+      selectedOptions: selectedOptions.value,
+      draggedImages: draggedImages.value,
+    }, props.request.id)
 
     console.log('[DEBUG] handleSubmit 发送响应:', response)
 
@@ -493,6 +483,7 @@ Here is my original instruction:
     <div class="flex-shrink-0 bg-black-100 border-t-2 border-black-200" data-guide="popup-actions">
       <PopupActions
         :request="request" :loading="loading" :submitting="submitting" :can-submit="canSubmit"
+        :can-enhance="canEnhance" :has-input-content="hasInputContent"
         :continue-reply-enabled="continueReplyEnabled" :input-status-text="inputStatusText"
         @submit="handleSubmit" @continue="handleContinue" @enhance="handleEnhance"
       />

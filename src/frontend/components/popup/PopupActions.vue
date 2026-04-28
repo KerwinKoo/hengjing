@@ -8,6 +8,8 @@ interface Props {
   loading?: boolean
   submitting?: boolean
   canSubmit?: boolean
+  canEnhance?: boolean
+  hasInputContent?: boolean
   connectionStatus?: string
   continueReplyEnabled?: boolean
   inputStatusText?: string
@@ -23,6 +25,8 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   submitting: false,
   canSubmit: false,
+  canEnhance: false,
+  hasInputContent: false,
   connectionStatus: '已连接',
   continueReplyEnabled: true,
   inputStatusText: '',
@@ -44,21 +48,15 @@ const {
 const shortcutText = quickSubmitShortcutText
 
 const statusText = computed(() => {
-  // 如果可以提交，直接显示快捷键提示
-  if (props.canSubmit) {
+  if (props.hasInputContent) {
     return shortcutText.value
   }
 
-  // 如果有输入状态文本且不是默认状态，显示输入状态
   if (props.inputStatusText && props.inputStatusText !== '等待输入...') {
     return props.inputStatusText
   }
 
-  // 根据请求类型显示不同的提示
-  if (props.request?.predefined_options) {
-    return '选择选项或输入文本'
-  }
-  return '请输入内容'
+  return props.canSubmit ? shortcutText.value : '等待输入...'
 })
 
 // 处理快捷键
@@ -124,7 +122,7 @@ onMounted(() => {
           <n-tooltip trigger="hover" placement="top">
             <template #trigger>
               <n-button
-                :disabled="!canSubmit || submitting"
+                :disabled="!canEnhance || submitting"
                 size="medium"
                 type="info"
                 data-guide="enhance-button"
